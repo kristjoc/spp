@@ -162,8 +162,8 @@ void * runMaster(void * args) {
       while(recv_count < no_to_recv) {
         ins = malloc(sizeof(instance_t));             // allocate space for new instance
         // extract hash
-        memcpy(&ins->pkt_id, buf_ptr, sizeof(uint32_t));
-        buf_ptr += sizeof(uint32_t);
+        memcpy(&ins->pkt_id, buf_ptr, sizeof(uint64_t));
+        buf_ptr += sizeof(uint64_t);
 
 
         if(ts_code == ABSOLUTE) {
