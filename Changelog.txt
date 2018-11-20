@@ -9,6 +9,8 @@ Version 0.3.7
 - Added "-# 16384" to hash across all TCP Option bytes
 - Added -O option to print 'fake' (uncorrected) OWD in each direction
 - Various documentation tweaks (README and man page source)
+- Change default hash function for packet id generation to crc64 and added 
+  -H option to select hash function (crc32 and crc64)
 
 Version 0.3.6
 - Fixed bug that caused SPP to fail on FreeBSD 10.1

@@ -26,7 +26,7 @@
 #define RECORD_H
 #include "spptool.h"
 typedef struct Record {
-	uint32_t pkt_id;
+	uint64_t pkt_id;
 	struct timeval ts[2];
         TAILQ_ENTRY(Record) entries;
 } record_t;

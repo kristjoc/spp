@@ -9,6 +9,7 @@
  *  
  */
 
+#include <stdint.h>
 #include "crc32.h"
 
 #if __GNUC__ >= 3	/* 2.x has "attribute", but only 3.0 has "pure */
@@ -234,6 +235,12 @@ uint32_t attribute((pure)) crc32_be(uint32_t crc, unsigned char const *p, size_t
 	return crc;
 }
 #endif
+
+/* wrapper with 64bit types */
+inline uint64_t crc32_wrapper(uint64_t crc, const unsigned char *p, uint64_t len)
+{
+    return (uint64_t) crc32_le((uint32_t)crc, p, (uint32_t) len);
+}
 
 /*
  * A brief CRC tutorial.

@@ -111,13 +111,13 @@ PRIVATE pair_t * assemblePair(record_t * record[2]) {
   if(verbosity & 4) {
     printf("\n");
     printf("* PAIR CREATED --------------------------------------------------\n");
-    printf("* Outgoing ID: %u \n", pair->rec[OUT]->pkt_id);
+    printf("* Outgoing ID: %lu \n", pair->rec[OUT]->pkt_id);
     printf("* REF TS: %6llu.%06llu,   MON TS: %6llu.%06llu\n", 
           (unsigned long long) pair->rec[OUT]->ts[REF].tv_sec,
           (unsigned long long) pair->rec[OUT]->ts[REF].tv_usec,
           (unsigned long long) pair->rec[OUT]->ts[MON].tv_sec,
           (unsigned long long) pair->rec[OUT]->ts[MON].tv_usec );
-    printf("* Incoming ID: %u \n", pair->rec[IN]->pkt_id);
+    printf("* Incoming ID: %lu \n", pair->rec[IN]->pkt_id);
     printf("* REF TS: %6llu.%06llu,   MON TS: %10llu.%06llu\n", 
           (unsigned long long) pair->rec[IN]->ts[REF].tv_sec,
           (unsigned long long) pair->rec[IN]->ts[REF].tv_usec,

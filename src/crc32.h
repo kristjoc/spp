@@ -17,6 +17,7 @@
 
 extern int init_crc32(void);
 extern void cleanup_crc32(void);
+extern uint64_t  crc32_wrapper(uint64_t crc, const unsigned char *p, uint64_t len);
 extern uint32_t  crc32_le(uint32_t crc, unsigned char const *p, size_t len);
 extern uint32_t  crc32_be(uint32_t crc, unsigned char const *p, size_t len);
 

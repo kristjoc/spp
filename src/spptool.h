@@ -92,4 +92,6 @@ typedef enum TS_CODE {ABSOLUTE = 0, OFFSET_1 = 1, OFFSET_2 = 2, OFFSET_3 = 3, OF
 
 typedef enum STATUS_TYPE {OK = 0, FILE_END = 1} status_t; //CHECK THIS HACK
 
+typedef uint64_t (*HASH_FUNCTION)(uint64_t, const unsigned char *, uint64_t);
+
 #endif

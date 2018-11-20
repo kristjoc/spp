@@ -14,6 +14,7 @@ NAME = spp
 SRCDIR=./src
 
 SOURCES.c=  $(SRCDIR)/crc32.c \
+            $(SRCDIR)/crc64.c \
 	    $(SRCDIR)/instance.c \
 	    $(SRCDIR)/pair.c \
             $(SRCDIR)/record.c \
@@ -24,6 +25,7 @@ SOURCES.c=  $(SRCDIR)/crc32.c \
 
 
 INCLUDES =  $(SRCDIR)/crc32.h \
+            $(SRCDIR)/crc64.h \
 	    $(SRCDIR)/instance.h \
 	    $(SRCDIR)/pair.h \
             $(SRCDIR)/record.h \

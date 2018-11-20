@@ -48,7 +48,7 @@ TAILQ_HEAD(instance_q_head, Instance);
 typedef enum MP_TYPE_TYPE {none = 0, live, file, remote} mp_type_t;
 
 typedef struct Instance {
-	uint32_t pkt_id;     // Hash generated from packet header and some data
+	uint64_t pkt_id;     // Hash generated from packet header and some data
 	struct timeval ts; 	// Timestamp from PCAP file
         TAILQ_ENTRY(Instance) entries;
 } instance_t;
@@ -115,4 +115,4 @@ void removeOldInstances(monitor_point_t * mpoint, direction_t direction, struct 
 void mpoint_load(monitor_point_t * mpoint, const mp_type_t type, const char * name, mp_id_t id);
 void mpoint_unload(monitor_point_t * mpoint);
 void mpoint_start(monitor_point_t * mpoint);
-uint32_t getHash(const struct ip *ip_hdr);
+uint64_t getHash(const struct ip *ip_hdr);

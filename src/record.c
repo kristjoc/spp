@@ -129,7 +129,7 @@ PUBLIC record_t * createRecord(direction_t direction) {
     removeOldInstances(&mp[REF], direction, &cur_ts);
 
     if (verbosity & 8)
-        printf("INFO: Created record with ID %u \n", rec->pkt_id);
+        printf("INFO: Created record with ID %lu \n", rec->pkt_id);
 
     return rec;
 }
@@ -166,17 +166,17 @@ PRIVATE int searchInstances(instance_t * instance[2], direction_t direction) {
 
         // Check to see if the timestamps differ by > delta_t_max
         if (delta_t > (delta_t_max + 1)) {                 
-            if (verbosity & 8) printf("INFO: Skipping instance %u due to T Delta of %ld\n", instance[MON]->pkt_id, delta_t);
+            if (verbosity & 8) printf("INFO: Skipping instance %lu due to T Delta of %ld\n", instance[MON]->pkt_id, delta_t);
             removeInstance(instance[MON], &mp[MON], direction);
             return 2;
         } else if ((0 - delta_t) > (delta_t_max + 1)) { 
-            if (verbosity & 8) printf("INFO: Skipping instance %u due to T Delta of %ld\n", instance[REF]->pkt_id, delta_t);
+            if (verbosity & 8) printf("INFO: Skipping instance %lu due to T Delta of %ld\n", instance[REF]->pkt_id, delta_t);
             removeInstance(instance[REF], &mp[REF], direction);
             return 2;
         } 
         // Check if we've searched too many packets
         else if (count >= max_packet_gap ) {  
-            if (verbosity & 8) printf("INFO: Skipping instance %u since it wasn't found in over %u entries. Try using -G command line option with a bigger number.\n", 
+            if (verbosity & 8) printf("INFO: Skipping instance %lu since it wasn't found in over %u entries. Try using -G command line option with a bigger number.\n", 
 			    		instance[MON]->pkt_id, max_packet_gap);
             removeInstance(instance[MON], &mp[MON], direction);
             return 2;   

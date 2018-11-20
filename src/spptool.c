@@ -39,6 +39,7 @@
 #include <pthread.h>
 #include <signal.h>
 #include <ctype.h>
+#include <string.h>
 
 #include "instance.h"
 #include "record.h"
@@ -46,6 +47,7 @@
 #include "slave.h"
 #include "spptool.h"
 #include "crc32.h"
+#include "crc64.h"
 #include "timeval.h"
 
 
@@ -59,6 +61,7 @@ options_t options;
 int finished = 0;
 unsigned int hash_fields = 63;
 //unsigned int hash_fields = 8191; // by default use all fields
+HASH_FUNCTION hash_function = crc64;
 unsigned int rtt_count = 0;
 int delta_t_max = DELTA_T_MAX;
 unsigned int sec_offset = 0;
@@ -130,7 +133,7 @@ int initialise() {
 void processArgs(int argc, char *argv[]){
   int user_set_max_packet_gap = 0;
   char c;
-  while ((c = getopt(argc, argv, "hg:o:d:v:t:l:G:s:a:A:n:N:f:F:i:I:r:R:#:pcmbOP")) != -1 ) {
+  while ((c = getopt(argc, argv, "hH:g:o:d:v:t:l:G:s:a:A:n:N:f:F:i:I:r:R:#:pcmbOP")) != -1 ) {
     switch (c) {
       case 'h': displayUsageInfo();
                 exit(0);
@@ -161,6 +164,14 @@ void processArgs(int argc, char *argv[]){
       case 'N': inet_aton(optarg, (struct in_addr *) &nat_addr[MON]); break;
       case '#': hash_fields = atoi(optarg);
                // printf("type: %d", hash_fields);exit(0);printf("%s\n",optarg); 
+                break;
+      case 'H': if (!strcmp(optarg, "crc32")) {
+                    hash_function = crc32_wrapper;
+                } else if (!strcmp(optarg, "crc64")) {
+                    hash_function = crc64;
+                } else {
+                    hash_function = crc64;
+                }
                 break;
       case 's': options |= run_slave; 
                 loadSlave(optarg);
@@ -276,7 +287,7 @@ void sigintproc() {
   //exit(1);
 }
 void displayUsageInfo(){
-                printf("Synthetic Packet Pairing Tool - 0.3.7pre\n\n");
+                printf("Synthetic Packet Pairing Tool - 0.3.7\n\n");
                 printf("Output: [pair count] timestamp rtt [spt] [OWDref2mon OWDmon2ref]\n\n");
                 printf("Offline file processing usage:\n");
                 printf("\tspp -a <IP address> -A <IP address> -f <file>  -F <file>\n\t\t[ -# <hashcode> |-p |-c|-m|-b|-O|-P]\n\n");
@@ -297,7 +308,8 @@ void displayUsageInfo(){
                 printf("\t-d T Delta Maximum (seconds) - see Readme (default: %d)\n", DELTA_T_MAX);
                 printf("\t-o Offset in seconds of the monitor point with respect to the reference point\n");
                 printf("\t-G Maximum number of packets that will be searched to match a pair before giving up (default: %d)\n", MAX_PACKET_GAP);
-                printf("\t-P Enable pcap/bpf filtering (only accept DLT_EN10MB-framed packets where IP addresses match)\n\n");
+                printf("\t-P Enable pcap/bpf filtering (only accept DLT_EN10MB-framed packets where IP addresses match)\n");
+                printf("\t-H Specify hash function used for packet ID generation, must be \"crc32\" or \"crc64\" (default: crc64)\n\n");
 
                 printf("Source options:\n");
                 printf("\t-f File to be read for the reference point (PCAP format)\n");

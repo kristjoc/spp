@@ -200,7 +200,7 @@ void * runMaster(void * args) {
         pthread_mutex_lock(&mpoint->q_size_mutex[direction]);
         mpoint->q_size[direction]++;
         pthread_mutex_unlock(&mpoint->q_size_mutex[direction]);
-            if(verbosity & 16) printf("NETWORK: Added %u to mpoint %u instance_q[%u] - timestamp: %llu.%06llu\n", 
+            if(verbosity & 16) printf("NETWORK: Added %lu to mpoint %u instance_q[%u] - timestamp: %llu.%06llu\n", 
                                       ins->pkt_id, mpoint->id, direction, (unsigned long long) ins->ts.tv_sec, (unsigned long long) ins->ts.tv_usec);
         recv_count++;
       }

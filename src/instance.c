@@ -45,6 +45,7 @@
 
 #include "spptool.h"
 #include "crc32.h"
+#include "crc64.h"
 #include "timeval.h"
 #include "instance.h"
 #include "master.h"
@@ -58,6 +59,7 @@ PUBLIC in_addr_t addr[2];
 PUBLIC in_addr_t nat_addr[2];
 
 extern int hash_fields;
+extern HASH_FUNCTION hash_function;
 extern int finished;
 extern int options;
 extern int delta_t_max;
@@ -73,7 +75,7 @@ PRIVATE instance_t* assembleInstance(const struct pcap_pkthdr *pcap_hdr, const s
 PUBLIC void createInstance(u_char *args, const struct pcap_pkthdr *pcap_hdr, const u_char *pkt);
 PUBLIC void * createInstances(void * args);
 PRIVATE void setPcapFilter(monitor_point_t * mpoint, char * filter_string);
-PUBLIC uint32_t getHash(const struct ip *ip_hdr);
+PUBLIC uint64_t getHash(const struct ip *ip_hdr);
 
 //######## FUNCTIONS #########//
 
@@ -242,7 +244,7 @@ PRIVATE instance_t* assembleInstance(const struct pcap_pkthdr *pcap_hdr, const s
  * ensuring they wont match between REF and MON.
  * 
  * */
-PUBLIC uint32_t getHash(const struct ip *ip_hdr) {
+PUBLIC uint64_t getHash(const struct ip *ip_hdr) {
 
   unsigned int hash_offset = 0;
   unsigned char hash_data[HASH_DATA_LENGTH + 1];
@@ -344,7 +346,7 @@ PUBLIC uint32_t getHash(const struct ip *ip_hdr) {
 		hash_offset += hash_bytes;
 	}
   }
-  return crc32_le(0, hash_data, hash_offset);
+  return hash_function(0, hash_data, hash_offset);
 }
 
 /*
@@ -486,7 +488,7 @@ PUBLIC void createInstance(u_char *args, const struct pcap_pkthdr *pcap_hdr, con
       //printf("DEBUGGING 2... \n");
       
       if(verbosity & 16) {
-        printf("INFO: Added %u to mpoint %u instance_q[%u] - timestamp: %llu.%06llu\n", ins->pkt_id, mpoint->id, direction, 
+        printf("INFO: Added %lu to mpoint %u instance_q[%u] - timestamp: %llu.%06llu\n", ins->pkt_id, mpoint->id, direction, 
                (unsigned long long)ins->ts.tv_sec, (unsigned long long)ins->ts.tv_usec);
       }
     }
@@ -562,7 +564,7 @@ PUBLIC void removeOldInstances(monitor_point_t * mpoint, direction_t direction, 
 
     if(delta_t  > (delta_t_max + 1)) {
       if(verbosity & 8) {
-        printf("INFO: Removing old instance %u\n", ins->pkt_id);
+        printf("INFO: Removing old instance %lu\n", ins->pkt_id);
       }
       removeInstance(ins, mpoint, direction);
     }
