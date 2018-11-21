@@ -108,7 +108,7 @@ SPP - Synthetic Packet Pairs - 0.4 - Readme
         -N Natted IP address of the monitor point
         -s Put into slave mode and send SSF to specified host
         -v Verbosity Level - see man page
-        -d T Delta Maximum (seconds) if autotuning disabled with '-T' (default: 60)
+        -d T Delta Maximum (seconds) before autotuning starts or if autotuning disabled with '-T' (default: 60)
         -o Offset in seconds of the monitor point with respect to the reference point
         -G Search interval in number of packets (default: 10000(file)/500(live))
         -P Enable pcap/bpf filtering (only accept DLT_EN10MB-framed packets where IP addresses match)
@@ -225,8 +225,9 @@ SPP - Synthetic Packet Pairs - 0.4 - Readme
         with -G this may lead to failed matches due the search window being filled
         with old unmatched packets. Since version 0.4 spp autotunes -d by setting 
         it to the estimated clock offset plus an approximately 5 second safety 
-        margin to make sure no packets are lost for the matching process. This
-        autotuning can be disabled with -T.
+        margin to make sure no packets are lost for the matching process. Initially
+        the tolerance specified by -d will be used but after 20 matched packets
+        autotuning will start to take effect. Autotuning can be disabled with -T.
 
   7. Usage Examples
 

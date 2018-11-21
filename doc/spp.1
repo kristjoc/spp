@@ -4,7 +4,7 @@
 .\" then run:
 .\"  groff -man -Tascii -c -P -b spp.1
 .\"
-.TH SPP 1 "MAR 2018" FreeBSD "User Manuals"
+.TH SPP 1 "NOV 2018" FreeBSD "User Manuals"
 .SH NAME
 spp \- calculates round trip time (RTT) from pcap files or live traffic capture
 .SH SYNOPSIS
@@ -24,7 +24,7 @@ spp \- calculates round trip time (RTT) from pcap files or live traffic capture
 .I address
 .B | -N 
 .I address
-.B |-p|-c|-m|-b|-O|-P]
+.B |-p|-c|-m|-b|-O|-P|-H|-T]
 
 .SS Live processing master:
 .B spp -a 
@@ -47,7 +47,7 @@ spp \- calculates round trip time (RTT) from pcap files or live traffic capture
 .I address
 .B | -N 
 .I address
-.B |-p|-c|-m|-b|-O|-P]
+.B |-p|-c|-m|-b|-O|-P|-H|-T]
 
 .SS Remote slave:
 .B spp -a
@@ -114,7 +114,7 @@ Put into slave mode and send to the master specified
 .IP -o
 Offset in seconds of clocks at the monitor point with respect to the reference point.
 .IP -d seconds
-Max difference of timestamps in seconds allowed between matching packets. 
+Max difference of timestamps in seconds allowed between matching packets before autotuning starts or if autotuning is disabled with '-T'. 
 This value should be greater than expected RTT (plus any clock offset when not specifying a fixed offset with the -o option). (Default: 60)
 .IP -G
 Maximum number of packets that will be searched to match a pair before giving up (Default: 10000 [pcap file] or 500 [live])
@@ -135,6 +135,10 @@ Verbosity Level (Default: 0)
         64 RTT COUNT - "checksum"
         128 Network Details
         1024 Verbose Network Details
+.IP -H 
+Specify hash function used for packet ID generation, must be "crc32" or "crc64" (default: crc64)
+.IP -T 
+Disable the default autotuning of T Delta using actual clock offset estimates
 
 .SS Source options:
 .IP -f 
@@ -229,6 +233,10 @@ hash over fewer fields. (For example, don't hash over TCP sequence or acknowledg
 numbers if a middle-box is rewriting these fields mid-path. Otherwise spp will
 fail to match a packet seen at REF with the same packet seen at MON.)
 
+Until version 0.3.6 spp used CRC32 as hash function. Since version 0.4
+CRC64 is used by default to reduce the collision probability. The -H option
+can be used to select CRC32 instead.
+
 .SH CLOCK SYNCHRONISATION
 
 The SPP algorithm does not strictly require clocks at REF and MON to be
@@ -246,6 +254,15 @@ into account. The known offset can be specified in seconds using the
 In addition, the option '-d' can be used to alter the maximum tolerance
 (in seconds) for clocks that are out of sync. See [2] for more details
 on 'T delta'.
+
+Note that larger -d values will enable you to calculate estimates if the
+synchronisation wasn't ideal, but given that the search window is limited
+with -G this may lead to failed matches due the search window being filled
+with old unmatched packets. Since version 0.4 spp autotunes -d by setting
+it to the estimated clock offset plus an approximately 5 second safety
+margin to make sure no packets are lost for the matching process. Initially
+the tolerance specified by -d will be used but after 20 matched packets
+autotuning will start to take effect. Autotuning can be disabled with -T.
         
 .SH  EXAMPLES
 
