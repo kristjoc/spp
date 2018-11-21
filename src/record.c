@@ -167,18 +167,18 @@ PRIVATE int searchInstances(instance_t * instance[2], direction_t direction) {
     instance[MON] = TAILQ_FIRST(&mp[MON].instance_q[direction]);
     pthread_mutex_unlock(&mp[MON].q_mutex[direction]);
 
+    // autotuning of delta_t_max
+    if (autotune_delta_t_max && est_offset_samples >= autotune_delta_t_max_min_samples) {
+        // use value based on past observations plus a safety margin
+        tuned_delta_t_max = (int)ceil(est_offset) + autotune_delta_t_max_min;
+    } else {
+        tuned_delta_t_max = delta_t_max;
+    }
+
     while(instance[REF] != NULL && instance[MON] != NULL) {
 
         count++;
         delta_t = (instance[REF]->ts.tv_sec - (instance[MON]->ts.tv_sec - sec_offset));
-
-        // autotuning of delta_t_max
-        if (autotune_delta_t_max && est_offset_samples >= autotune_delta_t_max_min_samples) {
-            // use value based on past observations plus 3s as safety
-            tuned_delta_t_max = (int)ceil(est_offset) + autotune_delta_t_max_min;
-        } else {
-            tuned_delta_t_max = delta_t_max;
-        }
 
         // Check to see if the timestamps differ by > delta_t_max
         if (delta_t > (tuned_delta_t_max + 1)) {                 
@@ -199,9 +199,11 @@ PRIVATE int searchInstances(instance_t * instance[2], direction_t direction) {
         }
         // Pair found, return it
         else if (instance[REF]->pkt_id == instance[MON]->pkt_id) { //if they are equal
-            // when we have match, update estimated clock offset between both points
-            est_offset = 0.7 * est_offset + 0.3 * (double) labs(delta_t);
-            est_offset_samples++;
+            // when we have match, if autotune on update estimated clock offset between both points
+            if (autotune_delta_t_max) {
+                est_offset = 0.7 * est_offset + 0.3 * (double) labs(delta_t);
+                est_offset_samples++; // rely on this not wrapping
+            }
             return 1;
         }
 
