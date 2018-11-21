@@ -1,4 +1,4 @@
-Version 0.3.7
+Version 0.4
 - Added pointer to http://caia.swin.edu.au/reports/130730A/CAIA-TR-130730A.pdf
 - Fixed threading bug that causes segfault with newer pthread lib on Linux
 - Directory bin is now created during make (if it doesn't exists)

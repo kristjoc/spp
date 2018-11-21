@@ -94,7 +94,7 @@ install:
 #
 # Tars and gzip's the distribtion - use for development
 #
-DISTRONAME=spp-0.3.7
+DISTRONAME=spp-0.4
 
 distro:
 #Make a gzip archive with only the necessary files

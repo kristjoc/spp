@@ -294,7 +294,7 @@ void sigintproc() {
   //exit(1);
 }
 void displayUsageInfo(){
-                printf("Synthetic Packet Pairing Tool - 0.3.7\n\n");
+                printf("Synthetic Packet Pairing Tool - 0.4\n\n");
                 printf("Output: [pair count] timestamp rtt [spt] [OWDref2mon OWDmon2ref]\n\n");
                 printf("Offline file processing usage:\n");
                 printf("\tspp -a <IP address> -A <IP address> -f <file>  -F <file>\n\t\t[ -# <hashcode> |-p |-c|-m|-b|-O|-P]\n\n");

@@ -1,4 +1,4 @@
-SPP - Synthetic Packet Pairs - 0.3.X - Readme
+SPP - Synthetic Packet Pairs - 0.4 - Readme
 
   1. Overview
 
