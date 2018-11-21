@@ -98,7 +98,7 @@ DISTRONAME=spp-0.4
 
 distro:
 #Make a gzip archive with only the necessary files
-	mkdir $(DISTRONAME); cp -a * $(DISTRONAME); rm -rf $(DISTRONAME)/$(DISTRONAME); tar --exclude="*.svn*" --exclude="*.o" --exclude="*~" --exclude="*.old" --exclude="*.orig" --exclude="*.kde*" --exclude="*.out" --exclude="*.new" --exclude="*Doxyfile*" --exclude="*bin/spp*" --exclude="src-fork" --exclude="spp-*.tar.gz" --format=ustar -cvf ${DISTRONAME}.tar ${DISTRONAME}; rm -rf $(DISTRONAME); gzip $(DISTRONAME).tar; 
+	mkdir $(DISTRONAME); rsync -av --exclude .hgtags --exclude .hg --exclude bin --exclude spp-0.4 . $(DISTRONAME); tar --exclude="*.svn*" --exclude="*.o" --exclude="*~" --exclude="*.old" --exclude="*.orig" --exclude="*.kde*" --exclude="*.out" --exclude="*.new" --exclude="*Doxyfile*" --exclude="*bin/spp*" --exclude="src-fork" --exclude="spp-*.tar.gz" --format=ustar -cvf ${DISTRONAME}.tar ${DISTRONAME}; rm -rf $(DISTRONAME); gzip $(DISTRONAME).tar; 
 
 
 
