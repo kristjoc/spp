@@ -112,6 +112,8 @@ SPP - Synthetic Packet Pairs - 0.3.X - Readme
         -o Offset in seconds of the monitor point with respect to the reference point
 	-G Search interval in number of packets (default: 10000(file)/500(live))
         -P Enable pcap/bpf filtering (only accept DLT_EN10MB-framed packets where IP addresses match)
+        -H Specify hash function used for packet ID generation, must be "crc32" or "crc64" (default: crc64)
+        -T Disable autotuning of T Delta using actual clock offset estimates
 
        Source options:
         -f File to be read for the reference point (PCAP format)
@@ -194,6 +196,10 @@ SPP - Synthetic Packet Pairs - 0.3.X - Readme
         hash over fewer fields. (For example, don't hash over TCP sequence or acknowledgement
         numbers if a middle-box is rewriting these fields mid-path. Otherwise spp will
         fail to match a packet seen at REF with the same packet seen at MON.)
+
+        Until version 0.3.6 spp used CRC32 as hash function. Since version 0.3.7
+        CRC64 is used by default to reduce the collision probability. The -H option
+        can be used to use CRC32.
         
    6.2 Clock Synchronisation
 
@@ -212,6 +218,14 @@ SPP - Synthetic Packet Pairs - 0.3.X - Readme
         In addition, the option '-d' can be used to alter the maximum tolerance
         (in seconds) for clocks that are out of sync. See [2] for more details
         on 'T delta'.
+
+        Note that larger -d values will enable you to calculate estimates if the 
+        synchronisation wasn't ideal, but given that the search window is limited
+        with -G this may lead to failed matches due the search window being filled
+        with old unmatched packets. Since version 0.3.7 spp autotunes -b by setting 
+        it to the estimated clock offset plus a large approx. 5 second safety 
+        margin to make sure no packets are lost for the matching process. This
+        autotuning can be disabled with -T.
 
   7. Usage Examples
 

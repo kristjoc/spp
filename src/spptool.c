@@ -64,6 +64,11 @@ unsigned int hash_fields = 63;
 HASH_FUNCTION hash_function = crc64;
 unsigned int rtt_count = 0;
 int delta_t_max = DELTA_T_MAX;
+int autotune_delta_t_max = 1;
+// min number of clock offset samples to collect before we autotune
+const int autotune_delta_t_max_min_samples = 20;
+// min delta_t_max when autotuning
+const int autotune_delta_t_max_min = 4;
 unsigned int sec_offset = 0;
 unsigned int verbosity = 0;
 unsigned int max_packet_gap = MAX_PACKET_GAP;
@@ -133,7 +138,7 @@ int initialise() {
 void processArgs(int argc, char *argv[]){
   int user_set_max_packet_gap = 0;
   char c;
-  while ((c = getopt(argc, argv, "hH:g:o:d:v:t:l:G:s:a:A:n:N:f:F:i:I:r:R:#:pcmbOP")) != -1 ) {
+  while ((c = getopt(argc, argv, "hH:g:o:d:v:t:Tl:G:s:a:A:n:N:f:F:i:I:r:R:#:pcmbOP")) != -1 ) {
     switch (c) {
       case 'h': displayUsageInfo();
                 exit(0);
@@ -184,6 +189,8 @@ void processArgs(int argc, char *argv[]){
       case 'l': ts_len = atoi(optarg);
                 break;
       case 't': timeout = atoi(optarg);
+                break;
+      case 'T': autotune_delta_t_max = 0; 
                 break;
       case 'd': delta_t_max = atoi(optarg);
                 break;
@@ -309,7 +316,8 @@ void displayUsageInfo(){
                 printf("\t-o Offset in seconds of the monitor point with respect to the reference point\n");
                 printf("\t-G Maximum number of packets that will be searched to match a pair before giving up (default: %d)\n", MAX_PACKET_GAP);
                 printf("\t-P Enable pcap/bpf filtering (only accept DLT_EN10MB-framed packets where IP addresses match)\n");
-                printf("\t-H Specify hash function used for packet ID generation, must be \"crc32\" or \"crc64\" (default: crc64)\n\n");
+                printf("\t-H Specify hash function used for packet ID generation, must be \"crc32\" or \"crc64\" (default: crc64)\n");
+                printf("\t-T Disable autotuning of T Delta using actual clock offset estimates\n\n");
 
                 printf("Source options:\n");
                 printf("\t-f File to be read for the reference point (PCAP format)\n");

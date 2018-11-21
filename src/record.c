@@ -24,6 +24,7 @@
 #include <pcap.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <math.h>
 #include <unistd.h>
 #include <sys/socket.h>
 #include <sys/queue.h>
@@ -42,6 +43,10 @@ extern int finished;
 extern unsigned int rtt_count;
 extern unsigned int sec_offset;
 extern int delta_t_max;
+extern int autotune_delta_t_max;
+extern const int autotune_delta_t_max_min_samples;
+extern const int autotune_delta_t_max_min;
+
 extern int verbosity;
 extern unsigned int max_packet_gap;
 
@@ -150,6 +155,9 @@ PUBLIC record_t * createRecord(direction_t direction) {
 PRIVATE int searchInstances(instance_t * instance[2], direction_t direction) {
     long int delta_t = 0;
     int count = 0;
+    int tuned_delta_t_max = 0;
+    static double est_offset = 0;
+    static long unsigned int est_offset_samples = 0;
 
     pthread_mutex_lock(&mp[REF].q_mutex[direction]);
     instance[REF] = TAILQ_FIRST(&mp[REF].instance_q[direction]);
@@ -164,12 +172,20 @@ PRIVATE int searchInstances(instance_t * instance[2], direction_t direction) {
         count++;
         delta_t = (instance[REF]->ts.tv_sec - (instance[MON]->ts.tv_sec - sec_offset));
 
+        // autotuning of delta_t_max
+        if (autotune_delta_t_max && est_offset_samples >= autotune_delta_t_max_min_samples) {
+            // use value based on past observations plus 3s as safety
+            tuned_delta_t_max = (int)ceil(est_offset) + autotune_delta_t_max_min;
+        } else {
+            tuned_delta_t_max = delta_t_max;
+        }
+
         // Check to see if the timestamps differ by > delta_t_max
-        if (delta_t > (delta_t_max + 1)) {                 
+        if (delta_t > (tuned_delta_t_max + 1)) {                 
             if (verbosity & 8) printf("INFO: Skipping instance %lu due to T Delta of %ld\n", instance[MON]->pkt_id, delta_t);
             removeInstance(instance[MON], &mp[MON], direction);
             return 2;
-        } else if ((0 - delta_t) > (delta_t_max + 1)) { 
+        } else if ((0 - delta_t) > (tuned_delta_t_max + 1)) { 
             if (verbosity & 8) printf("INFO: Skipping instance %lu due to T Delta of %ld\n", instance[REF]->pkt_id, delta_t);
             removeInstance(instance[REF], &mp[REF], direction);
             return 2;
@@ -183,6 +199,9 @@ PRIVATE int searchInstances(instance_t * instance[2], direction_t direction) {
         }
         // Pair found, return it
         else if (instance[REF]->pkt_id == instance[MON]->pkt_id) { //if they are equal
+            // when we have match, update estimated clock offset between both points
+            est_offset = 0.7 * est_offset + 0.3 * (double) labs(delta_t);
+            est_offset_samples++;
             return 1;
         }
 

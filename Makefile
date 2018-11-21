@@ -38,7 +38,7 @@ INCLUDES =  $(SRCDIR)/crc32.h \
 
             
 
-SLIBS=  -pthread -lpcap
+SLIBS=  -pthread -lpcap -lm
 BINDIR=./bin
 PROGRAM= $(BINDIR)/$(NAME)
 CFLAGS += -I/usr/local/include 
