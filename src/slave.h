@@ -25,7 +25,8 @@
 PUBLIC void loadSlave(const char * name);
 PUBLIC int runSlave(monitor_point_t * mpoint);
 PUBLIC void sendPacket();
-PUBLIC void sendHashes(const struct pcap_pkthdr *pcap_hdr, const u_char *pkt, direction_t direction);
+PUBLIC void sendHashes(const struct pcap_pkthdr *pcap_hdr, const struct ip *ip_hdr, unsigned short ip_caplen,
+                       direction_t direction);
 
 
 

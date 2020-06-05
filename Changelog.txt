@@ -1,3 +1,9 @@
+Version 0.4.1
+- Fixed bug that included random bytes in the hash input used to generate the packet id
+  in cases where the captured bytes did not include the TCP option bytes or the first
+  12 bytes for TCP/UDP payload. Now for the TCP options, the UDP/TCP payloads and data
+  for non UDP/TCP, the capture length (snap size) will limit the hash input.
+
 Version 0.4
 - Added pointer to http://caia.swin.edu.au/reports/130730A/CAIA-TR-130730A.pdf
 - Fixed threading bug that causes segfault with newer pthread lib on Linux

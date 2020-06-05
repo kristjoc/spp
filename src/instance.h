@@ -115,4 +115,4 @@ void removeOldInstances(monitor_point_t * mpoint, direction_t direction, struct 
 void mpoint_load(monitor_point_t * mpoint, const mp_type_t type, const char * name, mp_id_t id);
 void mpoint_unload(monitor_point_t * mpoint);
 void mpoint_start(monitor_point_t * mpoint);
-uint64_t getHash(const struct ip *ip_hdr);
+uint64_t getHash(const struct ip *ip_hdr, unsigned short ip_caplen);

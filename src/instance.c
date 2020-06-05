@@ -71,11 +71,12 @@ extern unsigned int sec_offset;
 PUBLIC void mpoint_load(monitor_point_t * mpoint, const mp_type_t type, const char * name, mp_id_t id);
 PUBLIC void instance_unload(mp_id_t id);
 
-PRIVATE instance_t* assembleInstance(const struct pcap_pkthdr *pcap_hdr, const struct ip *ip_hdr, direction_t direction);
+PRIVATE instance_t* assembleInstance(const struct pcap_pkthdr *pcap_hdr, const struct ip *ip_hdr, unsigned short ip_caplen,
+                                     direction_t direction);
 PUBLIC void createInstance(u_char *args, const struct pcap_pkthdr *pcap_hdr, const u_char *pkt);
 PUBLIC void * createInstances(void * args);
 PRIVATE void setPcapFilter(monitor_point_t * mpoint, char * filter_string);
-PUBLIC uint64_t getHash(const struct ip *ip_hdr);
+PUBLIC uint64_t getHash(const struct ip *ip_hdr, unsigned short ip_caplen);
 
 //######## FUNCTIONS #########//
 
@@ -214,11 +215,12 @@ PUBLIC void mpoint_unload(monitor_point_t * mpoint) {
   }
 }
 
-PRIVATE instance_t* assembleInstance(const struct pcap_pkthdr *pcap_hdr, const struct ip *ip_hdr, direction_t direction){
+PRIVATE instance_t* assembleInstance(const struct pcap_pkthdr *pcap_hdr, const struct ip *ip_hdr, unsigned short ip_caplen,
+                                     direction_t direction){
 
   instance_t * ins = malloc(sizeof(instance_t));
   //printf("))) Malloc to ptr: %u\n", ins);
-  ins->pkt_id = getHash(ip_hdr);
+  ins->pkt_id = getHash(ip_hdr, ip_caplen);
 
   ins->ts = pcap_hdr->ts;                                                                     // Store instance timestamp
   return ins;
@@ -244,7 +246,7 @@ PRIVATE instance_t* assembleInstance(const struct pcap_pkthdr *pcap_hdr, const s
  * ensuring they wont match between REF and MON.
  * 
  * */
-PUBLIC uint64_t getHash(const struct ip *ip_hdr) {
+PUBLIC uint64_t getHash(const struct ip *ip_hdr, unsigned short ip_caplen) {
 
   unsigned int hash_offset = 0;
   unsigned char hash_data[HASH_DATA_LENGTH + 1];
@@ -302,16 +304,22 @@ PUBLIC uint64_t getHash(const struct ip *ip_hdr) {
       if(hash_fields & 8192) {            // Add up to first hash_bytes bytes of TCP payload
 	unsigned short hash_bytes = 12;
 	unsigned short tcp_data_start = tcp_hdr->th_off * 4;
-	unsigned short tcp_data_len = ntohs(ip_hdr->ip_len) - (ip_hdr->ip_hl * 4) - tcp_data_start;
-	if (tcp_data_len < hash_bytes) {
-		hash_bytes = tcp_data_len;
-	}
-	memcpy((void*)(hash_data + hash_offset), (void*)(transport_hdr + tcp_data_start), hash_bytes);
-	hash_offset += hash_bytes;
+	int tcp_data_len = ip_caplen - (ip_hdr->ip_hl * 4) - tcp_data_start;
+        if (tcp_data_len > 0) {
+          if (tcp_data_len < hash_bytes) {
+	    hash_bytes = tcp_data_len;
+	  }
+	  memcpy((void*)(hash_data + hash_offset), (void*)(transport_hdr + tcp_data_start), hash_bytes);
+	  hash_offset += hash_bytes;
+        }
       }
       if(hash_fields & 16384) {           // Hash across all TCP options bytes if present
 	unsigned short hash_bytes = tcp_hdr->th_off * 4 - 20; // Number of bytes of TCP options
-	if (hash_bytes > 0) { // There are options, so off we go
+        int tcp_optdata_len = ip_caplen - (ip_hdr->ip_hl * 4) - 20;
+        if (tcp_optdata_len > 0) {
+          if (tcp_optdata_len < hash_bytes) {
+            hash_bytes = tcp_optdata_len;
+          }
 	  memcpy((void*)(hash_data + hash_offset), (void*)(transport_hdr + 20), hash_bytes);
 	  hash_offset += hash_bytes;
 	}
@@ -324,28 +332,33 @@ PUBLIC uint64_t getHash(const struct ip *ip_hdr) {
         hash_offset += 4;
       }
       if(hash_fields & 2048) {             // Add UDP payload (up to 12 bytes)
-	unsigned short data_len = ntohs(*((unsigned short*)(transport_hdr + 4))) - 8;
-	unsigned short hash_bytes = 12;
-	if (data_len < hash_bytes) {
-		hash_bytes = data_len;
-	}
-	memcpy((void*)(hash_data + hash_offset), (void*)(transport_hdr + 8), hash_bytes);	      	
-	hash_offset += hash_bytes;
+        unsigned short hash_bytes = 12;
+	int data_len = ip_caplen - 8;
+        if (data_len > 0) {
+	  if (data_len < hash_bytes) {
+	    hash_bytes = data_len;
+	  }
+	  memcpy((void*)(hash_data + hash_offset), (void*)(transport_hdr + 8), hash_bytes);	      	
+	  hash_offset += hash_bytes;
+        }
       }
 
     }
   } else {
 	if(hash_fields & 4096) {
 		// If not TCP or UDP add up to first 20 bytes past IP header
-		unsigned short ip_data_len = ntohs(ip_hdr->ip_len) - ip_hdr->ip_hl * 4;
-		unsigned short hash_bytes = 20;
-		if (ip_data_len < hash_bytes) {
-			hash_bytes = ip_data_len;
-		}
-		memcpy((void*)(hash_data + hash_offset), (void*)transport_hdr, hash_bytes);
-		hash_offset += hash_bytes;
+                unsigned short hash_bytes = 20;
+		int ip_data_len = ip_caplen - ip_hdr->ip_hl * 4;
+                if (ip_data_len > 0) {
+		  if (ip_data_len < hash_bytes) {
+		    hash_bytes = ip_data_len;
+		  }
+		  memcpy((void*)(hash_data + hash_offset), (void*)transport_hdr, hash_bytes);
+		  hash_offset += hash_bytes;
+                }
 	}
   }
+
   return hash_function(0, hash_data, hash_offset);
 }
 
@@ -382,6 +395,7 @@ PUBLIC void createInstance(u_char *args, const struct pcap_pkthdr *pcap_hdr, con
   monitor_point_t * mpoint = (monitor_point_t *)args; 
   int pkt_err = 0;
   int link_hdr_len = 0;
+  unsigned short ip_caplen;
 
   if(finished)pthread_exit(NULL);                     // Shut this thread down if we have been told to finish
   
@@ -428,11 +442,12 @@ PUBLIC void createInstance(u_char *args, const struct pcap_pkthdr *pcap_hdr, con
     pkt_err = 1;
   }
 
+  ip_caplen = pcap_hdr->caplen - link_hdr_len;
   if(ip_hdr->ip_len == 0){
     // Some instances of captured TSO'ed frames have been seen with ip_len=0,
     // so re-construct a fake a lower-bound IP packet length based on how many bytes
     // actually captured (may be used later during pkt_id generation)
-    ip_hdr->ip_len = htons(pcap_hdr->caplen - link_hdr_len);
+    ip_hdr->ip_len = htons(ip_caplen);
   }
 
   if(mpoint->byte_order_swapped){
@@ -472,11 +487,11 @@ PUBLIC void createInstance(u_char *args, const struct pcap_pkthdr *pcap_hdr, con
   if(pkt_err != 1) {
      
     if(options & run_slave) {
-      sendHashes(pcap_hdr, (const u_char *) ip_hdr, direction);
+      sendHashes(pcap_hdr, ip_hdr, ip_caplen, direction);
       //printf("For debugging only \n");
     }
     else {
-      ins = assembleInstance(pcap_hdr, ip_hdr, direction);
+      ins = assembleInstance(pcap_hdr, ip_hdr, ip_caplen, direction);
       pthread_mutex_lock(&mpoint->q_mutex[direction]);
       TAILQ_INSERT_TAIL(&mpoint->instance_q[direction], ins, entries);       // Insert instance into appropriate queue
       pthread_mutex_unlock(&mpoint->q_mutex[direction]); 

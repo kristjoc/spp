@@ -31,7 +31,7 @@ Sebastian Zander, Centre for Advanced Internet Architectures, Swinburne
   - Linux support
   - Updated documentation
 
-SPP 0.4
+SPP 0.4, 0.4.1
 
 Sebastian Zander, Grenville Armitage
   - Bug fixes

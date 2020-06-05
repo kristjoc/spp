@@ -155,7 +155,8 @@ PUBLIC void loadSlave(const char * name) {
 
 
 
-PUBLIC void sendHashes(const struct pcap_pkthdr *pcap_hdr, const u_char *pkt, direction_t direction) {
+PUBLIC void sendHashes(const struct pcap_pkthdr *pcap_hdr, const struct ip *ip_hdr, unsigned short ip_caplen,
+                       direction_t direction) {
 
   
   static struct timeval prev_ts;
@@ -164,7 +165,7 @@ PUBLIC void sendHashes(const struct pcap_pkthdr *pcap_hdr, const u_char *pkt, di
   uint32_t tmp, offset = 0;
   int shouldSendPacket = 0;
 
-  uint32_t hash = getHash((const struct ip *) pkt);
+  uint32_t hash = getHash(ip_hdr, ip_caplen);
 
   ts_code = ts_len; //change later
   //next_ts_len = ts_len;
