@@ -44,22 +44,22 @@
 #include "rtp.h"
 
 
-  extern uint16_t scale;
-  extern size_t ts_len;
-  extern int finished;
-  extern int verbosity;
+extern uint16_t scale;
+extern size_t ts_len;
+extern int finished;
+extern int verbosity;
 
-  int sockfd, numbytes;  
-  struct hostent *slave;
-  struct sockaddr_in slave_addr, my_addr;             // connector's address information 
-  socklen_t addr_len;
-
+PRIVATE int sockfd;
+PRIVATE struct sockaddr_in slave_addr;             // connector's address information
 
 
 
 void loadMaster(monitor_point_t * mpoint, const char * name) {
 
   struct timeval timeout;
+  struct hostent *slave;
+  struct sockaddr_in my_addr;
+
   timeout.tv_sec = 1;
   timeout.tv_usec = 0;
   if ((slave = gethostbyname(name)) == NULL) {        // get the host info 
@@ -99,8 +99,9 @@ void * runMaster(void * args) {
   char buf[MAX_PKT_LEN];
   void * buf_ptr;
   unsigned int no_to_recv, recv_count;
+  int numbytes;
   direction_t direction;
-
+  socklen_t addr_len;
   char ts_code;
   size_t ts_len;
   char hash_len;

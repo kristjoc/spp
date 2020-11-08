@@ -48,24 +48,21 @@
 
 PUBLIC int runSlave(monitor_point_t * mpoint);
 
-  uint16_t scale = 100;                               // Default to 100 usec granularity
-  size_t ts_len = 2;                                  // Default to 2 byte timestamps (15 bit: 16 - direction bit) 
-  uint16_t timeout = 10;                              // Packet send timeout in seconds (will send at least every 'timeout' seconds);  
+PUBLIC uint16_t scale = 100;                        // Default to 100 usec granularity
+PUBLIC size_t ts_len = 2;                           // Default to 2 byte timestamps (15 bit: 16 - direction bit) 
+PUBLIC uint16_t timeout = 10;                       // Packet send timeout in seconds (will send at least every 'timeout' seconds);  
+PUBLIC struct timeval lastSent;
 
-  extern int finished;
-  extern monitor_point_t mp[2];
+extern int finished;
+extern monitor_point_t mp[2];
 
-  int sockfd, new_fd;                                 // listen on sock_fd, new connection on new_fd
-  struct sockaddr_in my_addr;	                      // my address information
-  struct sockaddr_in  master_addr;                    // connector's address information
-  socklen_t sin_size;
-  struct hostent * master;
-  void * dataToSend;
-  void * insertPoint;
-  rtp_hdr_t send_hdr;
-
-  int ts_code;
-  struct timeval lastSent;
+PRIVATE int sockfd;                                 // listen on sock_fd, new connection on new_fd
+PRIVATE struct sockaddr_in my_addr;	            // my address information
+PRIVATE struct sockaddr_in master_addr;             // connector's address information
+PRIVATE void * dataToSend;
+PRIVATE void * insertPoint;
+PRIVATE rtp_hdr_t send_hdr;
+PRIVATE int ts_code;
 
 
 
@@ -113,6 +110,8 @@ PRIVATE void setupNewPacket(const struct pcap_pkthdr *pcap_hdr, struct timeval *
 
 
 PUBLIC void loadSlave(const char * name) {
+
+  struct hostent * master;
 
   master = malloc(sizeof(struct hostent));
 
