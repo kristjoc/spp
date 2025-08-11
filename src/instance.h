@@ -41,7 +41,9 @@
         (var) = (tvar))
 #endif
 
-
+#ifndef __packed
+#define __packed __attribute__((packed))
+#endif
 
 TAILQ_HEAD(instance_q_head, Instance);
 
